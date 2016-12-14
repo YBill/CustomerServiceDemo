@@ -62,7 +62,6 @@ public class LoginActivity extends AppCompatActivity {
                         DebugConfig.DEBUG = true;
                         AppUtils.uid = WeimiInstance.getInstance().getUID();
                         Log.logD("登录成功：" + AppUtils.uid);
-
                         gotoActivity(ChatActivity.class);
                     } else {
                         Log.logD("登录失败");

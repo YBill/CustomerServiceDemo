@@ -212,34 +212,36 @@ public class ChatPresenter {
     }
 
     private void receiveFile(FileMessage fileMessage) {
-        String thumbnailPath = "";
-        if (null != fileMessage.thumbData) {
-            thumbnailPath = AppUtils.getThumbnailPath(fileMessage.fromuid, fileMessage.msgId);
-            AppUtils.saveImg(fileMessage.thumbData, thumbnailPath); //保存缩略图
-        }
-        FileEntity fileEntity = new FileEntity();
-        int msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_IMAGE;
-        if (AppUtils.uid.equals(fileMessage.fromuid))
-            msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_IMAGE;
-        fileEntity.msgType = msgType;
-        fileEntity.fileId = fileMessage.fileId;
-        fileEntity.fileLength = fileMessage.fileLength;
-        fileEntity.pieceSize = fileMessage.pieceSize;
-        fileEntity.thumbnailPath = thumbnailPath;
-        fileEntity.time = fileMessage.time;
-        String padding = new String(fileMessage.padding);
-        Log.logD("额外消息：" + padding);
-        try {
-            JSONObject object = new JSONObject(padding);
-            if(object != null){
-                fileEntity.nickName = object.optString(AppUtils.NICK_NAME);
-                fileEntity.headUrl = object.optString(AppUtils.HEAD_URL);
+        if (MetaMessageType.image == fileMessage.type) {
+            String thumbnailPath = "";
+            if (null != fileMessage.thumbData) {
+                thumbnailPath = AppUtils.getThumbnailPath(fileMessage.fromuid, fileMessage.msgId);
+                AppUtils.saveImg(fileMessage.thumbData, thumbnailPath); //保存缩略图
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+            FileEntity fileEntity = new FileEntity();
+            int msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_IMAGE;
+            if (AppUtils.uid.equals(fileMessage.fromuid))
+                msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_IMAGE;
+            fileEntity.msgType = msgType;
+            fileEntity.fileId = fileMessage.fileId;
+            fileEntity.fileLength = fileMessage.fileLength;
+            fileEntity.pieceSize = fileMessage.pieceSize;
+            fileEntity.thumbnailPath = thumbnailPath;
+            fileEntity.time = fileMessage.time;
+            String padding = new String(fileMessage.padding);
+            Log.logD("额外消息：" + padding);
+            try {
+                JSONObject object = new JSONObject(padding);
+                if(object != null){
+                    fileEntity.nickName = object.optString(AppUtils.NICK_NAME);
+                    fileEntity.headUrl = object.optString(AppUtils.HEAD_URL);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            chatMsgEntityList.add(0, fileEntity);
+            historyCount++;
         }
-        chatMsgEntityList.add(0, fileEntity);
-        historyCount++;
     }
 
     private void receiveText(TextMessage textMessage) {

@@ -17,6 +17,8 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -64,7 +66,30 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
         initData();
         addListener();
 
-        presenter.sendMixedText(1);
+        connect();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_setting, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menu_id_user_id) {
+            AppUtils.toastMessage(AppUtils.uid);
+            return true;
+        } else if (id == R.id.menu_id_connect_service) {
+            connect();
+            return true;
+        } else if (id == R.id.menu_id_disconnect_service) {
+            disconnect();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -79,9 +104,17 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
         super.onBackPressed();
     }
 
-    private void back(){
-        presenter.sendMixedText(2);
+    private void back() {
+        disconnect();
         presenter.onDestroy();
+    }
+
+    private void connect(){
+        presenter.sendMixedText(1);
+    }
+
+    private void disconnect(){
+        presenter.sendMixedText(2);
     }
 
     /**
@@ -91,7 +124,7 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
         manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    private void initData(){
+    private void initData() {
         presenter = new ChatPresenter(this, this);
 
         recyclerView.setMotionEventSplittingEnabled(false);
@@ -208,6 +241,7 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
      * 拍照
      */
     private File cameraFile;
+
     private void selectPicFromCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         long ts = System.currentTimeMillis();
@@ -223,7 +257,7 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
      *
      * @param uri
      */
-    private String sendLocalImage( Uri uri) {
+    private String sendLocalImage(Uri uri) {
         String picturePath = "";
         if (uri != null) {
             String[] projection = {MediaStore.Images.Media.DATA};
@@ -248,7 +282,7 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
         return picturePath;
     }
 
-    private void sendImage(String filePath){
+    private void sendImage(String filePath) {
         presenter.sendImage(filePath, filePath.substring(filePath.lastIndexOf("/") + 1));
     }
 
@@ -265,12 +299,12 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
             }
         } else if (view == sendBtn) {
             String text = chatMsgEdit.getText().toString();
-            if(!TextUtils.isEmpty(text)){
+            if (!TextUtils.isEmpty(text)) {
                 presenter.sendText(text);
             }
-        } else if (view == photoGalleryBtn){
+        } else if (view == photoGalleryBtn) {
             selectPicFromLocal();
-        } else if (view == takePhotoBtn){
+        } else if (view == takePhotoBtn) {
             selectPicFromCamera();
         }
     }

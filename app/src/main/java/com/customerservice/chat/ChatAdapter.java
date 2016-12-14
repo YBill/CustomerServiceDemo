@@ -126,7 +126,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //            Glide.with(context).load(R.drawable.sd).asGif().into(peopleTextHolder.avatarImage);
 //            Glide.with(context).load(R.drawable.you).into(peopleTextHolder.avatarImage);
             Glide.with(context)
-                    .load(R.drawable.you)
+                    .load(R.drawable.xjs)
                     .asBitmap()
                     .centerCrop()
                     .placeholder(R.mipmap.ic_launcher)
@@ -191,7 +191,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     Glide.with(context).load(R.mipmap.ic_launcher).into(peopleImageHolder.avatarImage);
             }else{
                 Glide.with(context)
-                        .load(R.drawable.you)
+                        .load(R.drawable.xjs)
                         .asBitmap()
                         .centerCrop()
                         .placeholder(R.mipmap.ic_launcher)

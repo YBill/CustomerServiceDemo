@@ -133,7 +133,7 @@ public class ReceiveMsgRunnable implements Runnable {
         BroadCastCenter.getInstance().broadcast(intent);
     }
 
-    private void fileMessageMethod(WeimiNotice weimiNotice) {
+    private void fileMessageMethod(WeimiNotice weimiNotice   ) {
         Log.logD("收到一条文件消息");
         FileMessage fileMessage = (FileMessage) weimiNotice.getObject();
         if (MetaMessageType.image == fileMessage.type) {
