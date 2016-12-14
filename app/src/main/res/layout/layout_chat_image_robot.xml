@@ -26,7 +26,6 @@
             android:id="@+id/iv_user_head"
             android:layout_width="52dp"
             android:layout_height="52dp"
-            android:background="@mipmap/ic_launcher"
             android:scaleType="centerCrop" />
 
         <ImageView

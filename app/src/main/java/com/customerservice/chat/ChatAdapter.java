@@ -3,6 +3,8 @@ package com.customerservice.chat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -15,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.customerservice.R;
 import com.customerservice.chat.jsonmodel.ActionMsgEntity;
 import com.customerservice.chat.jsonmodel.CardMsgEntity;
@@ -119,27 +122,90 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void showDatas(ChatMsgEntity entity, RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof PeopleTextHolder) {
-            PeopleTextHolder peopleTextHolder = (PeopleTextHolder) holder;
+            final PeopleTextHolder peopleTextHolder = (PeopleTextHolder) holder;
+//            Glide.with(context).load(R.drawable.sd).asGif().into(peopleTextHolder.avatarImage);
+//            Glide.with(context).load(R.drawable.you).into(peopleTextHolder.avatarImage);
+            Glide.with(context)
+                    .load(R.drawable.you)
+                    .asBitmap()
+                    .centerCrop()
+                    .placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher)
+                    .into(new BitmapImageViewTarget(peopleTextHolder.avatarImage){
+                        @Override
+                        protected void setResource(Bitmap resource) {
+                            RoundedBitmapDrawable circularBitmapDrawable =
+                                    RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                            circularBitmapDrawable.setCircular(true);
+                            peopleTextHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
+                        }
+                    });
             peopleTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
             TextMsgEntity textMsgEntity = (TextMsgEntity) entity;
             peopleTextHolder.contentText.setText(textMsgEntity.content);
         } else if (holder instanceof RobotTextHolder) {
-            RobotTextHolder robotTextHolder = (RobotTextHolder) holder;
-            if(entity.headUrl != null && entity.headUrl.startsWith("http"))
-                Glide.with(context).load(entity.headUrl).into(robotTextHolder.avatarImage);
-            else
-                robotTextHolder.avatarImage.setImageResource(R.mipmap.ic_launcher);
+            final RobotTextHolder robotTextHolder = (RobotTextHolder) holder;
+            if(entity.headUrl != null && entity.headUrl.startsWith("http")) {
+                Glide.with(context)
+                        .load(entity.headUrl)
+                        .asBitmap()
+                        .centerCrop()
+                        .placeholder(R.mipmap.ic_launcher)
+                        .error(R.mipmap.ic_launcher)
+                        .into(new BitmapImageViewTarget(robotTextHolder.avatarImage){
+                            @Override
+                            protected void setResource(Bitmap resource) {
+                                RoundedBitmapDrawable circularBitmapDrawable =
+                                        RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                                circularBitmapDrawable.setCircular(true);
+                                robotTextHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
+                            }
+                        });
+            } else
+                Glide.with(context).load(R.mipmap.ic_launcher).into(robotTextHolder.avatarImage);
             robotTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
 
             robotTextHolder.contentText.setText("");
             isFirstNotCard = false;
             showText(entity, robotTextHolder);
         } else if (holder instanceof PeopleImageHolder) {
-            PeopleImageHolder peopleImageHolder = (PeopleImageHolder) holder;
-            if(entity.headUrl != null && entity.headUrl.startsWith("http"))
-                Glide.with(context).load(entity.headUrl).into(peopleImageHolder.avatarImage);
-            else
-                peopleImageHolder.avatarImage.setImageResource(R.mipmap.ic_launcher);
+            final PeopleImageHolder peopleImageHolder = (PeopleImageHolder) holder;
+            if(entity.msgType == ChatMsgEntity.CHAT_TYPE_ROBOT_IMAGE){
+                if(entity.headUrl != null && entity.headUrl.startsWith("http")){
+                    Glide.with(context)
+                            .load(entity.headUrl)
+                            .asBitmap()
+                            .centerCrop()
+                            .placeholder(R.mipmap.ic_launcher)
+                            .error(R.mipmap.ic_launcher)
+                            .into(new BitmapImageViewTarget(peopleImageHolder.avatarImage){
+                                @Override
+                                protected void setResource(Bitmap resource) {
+                                    RoundedBitmapDrawable circularBitmapDrawable =
+                                            RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                                    circularBitmapDrawable.setCircular(true);
+                                    peopleImageHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
+                                }
+                            });
+                } else
+                    Glide.with(context).load(R.mipmap.ic_launcher).into(peopleImageHolder.avatarImage);
+            }else{
+                Glide.with(context)
+                        .load(R.drawable.you)
+                        .asBitmap()
+                        .centerCrop()
+                        .placeholder(R.mipmap.ic_launcher)
+                        .error(R.mipmap.ic_launcher)
+                        .into(new BitmapImageViewTarget(peopleImageHolder.avatarImage){
+                            @Override
+                            protected void setResource(Bitmap resource) {
+                                RoundedBitmapDrawable circularBitmapDrawable =
+                                        RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                                circularBitmapDrawable.setCircular(true);
+                                peopleImageHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
+                            }
+                        });
+            }
             peopleImageHolder.dataText.setText(sdf.format(new Date(entity.time)));
             final FileEntity fileEntity = (FileEntity) entity;
             Bitmap bitmap = BitmapFactory.decodeFile(fileEntity.thumbnailPath);
