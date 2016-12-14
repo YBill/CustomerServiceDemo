@@ -9,6 +9,8 @@ import java.io.Serializable;
 public class ChatMsgEntity implements Serializable{
 
     public String type; // 接收到json的类型
+    public String nickName;
+    public String headUrl;
 
     public static final int CHAT_TYPE_PEOPLE_SEND_TEXT = 0; // 发送普通文本
     public static final int CHAT_TYPE_ROBOT_TEXT = 1; // 接收机器人的text消息

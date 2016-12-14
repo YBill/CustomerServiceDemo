@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class ActionMsgEntity extends ChatMsgEntity implements Serializable {
 
     public String content;
-    public String param; // param存一个json，客户端不需要，原样传给客服
+    public String actionJson; // 存一个json object，点击时原样传给客服
 
     public ActionMsgEntity() {
         type = "action";

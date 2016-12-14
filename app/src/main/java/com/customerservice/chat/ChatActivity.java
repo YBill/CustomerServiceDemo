@@ -70,6 +70,16 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        back();
+    }
+
+    @Override
+    public void onBackPressed() {
+        back();
+        super.onBackPressed();
+    }
+
+    private void back(){
         presenter.sendMixedText(2);
         presenter.onDestroy();
     }
@@ -100,7 +110,7 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                swipeRefreshLayout.setRefreshing(false);
+                presenter.getHistory();
             }
         });
     }
@@ -297,5 +307,10 @@ public class ChatActivity extends AppCompatActivity implements ChatView, View.On
     @Override
     public void clearInputMsg() {
         chatMsgEdit.setText("");
+    }
+
+    @Override
+    public void onCompleteLoad() {
+        swipeRefreshLayout.setRefreshing(false);
     }
 }

@@ -14,6 +14,9 @@ import com.ioyouyun.wchat.message.TextMessage;
 import com.ioyouyun.wchat.message.WeimiNotice;
 import com.ioyouyun.wchat.protocol.MetaMessageType;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -151,21 +154,42 @@ public class ReceiveMsgRunnable implements Runnable {
         fileEntity.thumbnailPath = thumbnailPath;
         fileEntity.msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_IMAGE;
         fileEntity.time = fileMessage.time;
+        String padding = new String(fileMessage.padding);
+        Log.logD("额外消息：" + padding);
+        try {
+            JSONObject object = new JSONObject(padding);
+            if(object != null){
+                fileEntity.nickName = object.optString(AppUtils.NICK_NAME);
+                fileEntity.headUrl = object.optString(AppUtils.HEAD_URL);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         setBroadCast(AppUtils.MSG_TYPE_RECEIVE, fileEntity);
     }
 
     private void mixedTextMessageMethod(WeimiNotice weimiNotice) {
-        Log.logD("收到一条富文本消息");
         TextMessage textMessage = (TextMessage) weimiNotice.getObject();
-        Log.logD("接收到的消息：：：" + textMessage.text);
+        Log.logD("收到一条富文本消息：" + textMessage.text);
     }
 
     private void textMessageMethod(WeimiNotice weimiNotice) {
         TextMessage textMessage = (TextMessage) weimiNotice.getObject();
-        Log.logD("接收到的消息：" + textMessage.text);
+        Log.logD("收到一条文本消息：" + textMessage.text);
         ChatMsgEntity entity = AppUtils.parseRobotMsg(textMessage.text);
         if (entity != null) {
             entity.time = textMessage.time;
+            String padding = new String(textMessage.padding);
+            Log.logD("额外消息：" + padding);
+            try {
+                JSONObject object = new JSONObject(padding);
+                if(object != null){
+                    entity.nickName = object.optString(AppUtils.NICK_NAME);
+                    entity.headUrl = object.optString(AppUtils.HEAD_URL);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             setBroadCast(AppUtils.MSG_TYPE_RECEIVE, entity);
         }
     }

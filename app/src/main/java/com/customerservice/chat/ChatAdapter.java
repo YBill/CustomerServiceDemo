@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.customerservice.R;
 import com.customerservice.chat.jsonmodel.ActionMsgEntity;
 import com.customerservice.chat.jsonmodel.CardMsgEntity;
@@ -124,6 +125,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             peopleTextHolder.contentText.setText(textMsgEntity.content);
         } else if (holder instanceof RobotTextHolder) {
             RobotTextHolder robotTextHolder = (RobotTextHolder) holder;
+            if(entity.headUrl != null && entity.headUrl.startsWith("http"))
+                Glide.with(context).load(entity.headUrl).into(robotTextHolder.avatarImage);
+            else
+                robotTextHolder.avatarImage.setImageResource(R.mipmap.ic_launcher);
             robotTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
 
             robotTextHolder.contentText.setText("");
@@ -131,6 +136,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             showText(entity, robotTextHolder);
         } else if (holder instanceof PeopleImageHolder) {
             PeopleImageHolder peopleImageHolder = (PeopleImageHolder) holder;
+            if(entity.headUrl != null && entity.headUrl.startsWith("http"))
+                Glide.with(context).load(entity.headUrl).into(peopleImageHolder.avatarImage);
+            else
+                peopleImageHolder.avatarImage.setImageResource(R.mipmap.ic_launcher);
             peopleImageHolder.dataText.setText(sdf.format(new Date(entity.time)));
             final FileEntity fileEntity = (FileEntity) entity;
             Bitmap bitmap = BitmapFactory.decodeFile(fileEntity.thumbnailPath);

@@ -8,7 +8,6 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.Environment;
 import android.provider.Settings;
-import android.util.*;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,8 +24,6 @@ import org.json.JSONTokener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,7 +47,7 @@ public class AppUtils {
     public static Context mAppContext;
     public static String uid; // 用户ID
 
-    public static String CUSTOM_SERVICE_ID = "539578"; // 魅族：271576 小米：238973 nexus:176329
+    public static String CUSTOM_SERVICE_ID = "549341"; // 魅族：271576 小米：238973 nexus:176329
 
     // 客服：549341
     // 线上 ：  魅族：271576 小米：238973 nexus:176329
@@ -106,15 +103,17 @@ public class AppUtils {
     private static final String ACTION = "action";
     private static final String EVENT = "event";
     private static final String CARD = "card";
-    private static final String PARAM = "param";
     private static final String CONTENT = "content";
+    private static final String PARAMS = "params";
     private static final String URL = "url";
 
     private static final String SORT = "sort";
     private static final String ENTER_KEY = "entercs";
     private static final String LEAVE_KEY = "leavecs";
     private static final String FROM = "from";
-    private static final String ROOM = "room";
+
+    public static final String NICK_NAME = "name";
+    public static final String HEAD_URL = "pic";
 
     /**
      * 封装text消息
@@ -148,8 +147,8 @@ public class AppUtils {
                 paramObj.put(SORT, ENTER_KEY);
             else if (2 == sort)
                 paramObj.put(SORT, LEAVE_KEY);
-            paramObj.put(FROM, ROOM);
-            object.put(PARAM, paramObj);
+            paramObj.put(FROM, "room");
+            object.put(PARAMS, paramObj);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -163,16 +162,7 @@ public class AppUtils {
      * @return
      */
     public static String encapsulateClickMsg(ActionMsgEntity actionMsgEntity) {
-        JSONObject object = new JSONObject();
-        try {
-            object.put(TYPE, ACTION);
-            object.put(CONTENT, actionMsgEntity.content);
-            JSONObject paramObj = new JSONObject(actionMsgEntity.param);
-            object.put(PARAM, paramObj);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return object.toString();
+        return actionMsgEntity.actionJson;
     }
 
     /**
@@ -200,10 +190,9 @@ public class AppUtils {
                     return linkMsgEntity;
                 } else if (ACTION.equals(type)) {
                     String content = object.getString(CONTENT);
-                    JSONObject paramObj = object.getJSONObject(PARAM);
                     ActionMsgEntity actionMsgEntity = new ActionMsgEntity();
                     actionMsgEntity.content = content;
-                    actionMsgEntity.param = paramObj.toString();
+                    actionMsgEntity.actionJson = object.toString();
                     return actionMsgEntity;
                 } else if (CARD.equals(type)) {
                     CardMsgEntity cardMsgEntity = new CardMsgEntity();
@@ -272,7 +261,7 @@ public class AppUtils {
             JSONObject paramObj = new JSONObject();
             paramObj.put("id", 1);
             paramObj.put("time", System.currentTimeMillis());
-            actionObj.put(PARAM, paramObj);
+            actionObj.put(PARAMS, paramObj);
             cardArray2.put(actionObj);
 
             JSONObject actionObj2 = new JSONObject();
@@ -281,7 +270,7 @@ public class AppUtils {
             JSONObject paramObj2 = new JSONObject();
             paramObj2.put("id", 1);
             paramObj2.put("time", System.currentTimeMillis());
-            actionObj2.put(PARAM, paramObj2);
+            actionObj2.put(PARAMS, paramObj2);
             cardArray2.put(actionObj2);
 
             JSONObject actionObj3 = new JSONObject();
@@ -290,7 +279,7 @@ public class AppUtils {
             JSONObject paramObj3 = new JSONObject();
             paramObj3.put("id", 1);
             paramObj3.put("time", System.currentTimeMillis());
-            actionObj3.put(PARAM, paramObj3);
+            actionObj3.put(PARAMS, paramObj3);
             cardArray2.put(actionObj3);
 
             JSONObject actionObj4 = new JSONObject();
@@ -299,7 +288,7 @@ public class AppUtils {
             JSONObject paramObj4 = new JSONObject();
             paramObj4.put("id", 1);
             paramObj4.put("time", System.currentTimeMillis());
-            actionObj4.put(PARAM, paramObj4);
+            actionObj4.put(PARAMS, paramObj4);
             cardArray2.put(actionObj4);
 
             cardObj2.put(CONTENT, cardArray2);
@@ -321,7 +310,7 @@ public class AppUtils {
             JSONObject paramObj5 = new JSONObject();
             paramObj5.put("id", 1);
             paramObj5.put("time", System.currentTimeMillis());
-            actionObj5.put(PARAM, paramObj5);
+            actionObj5.put(PARAMS, paramObj5);
             cardArray3.put(actionObj5);
 
             cardObj3.put(CONTENT, cardArray3);

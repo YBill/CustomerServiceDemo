@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.customerservice.AppUtils;
 import com.customerservice.Log;
@@ -14,8 +16,16 @@ import com.customerservice.receiver.BroadCastCenter;
 import com.customerservice.receiver.ReceiveMsgRunnable;
 import com.ioyouyun.wchat.WeimiInstance;
 import com.ioyouyun.wchat.message.ConvType;
+import com.ioyouyun.wchat.message.FileMessage;
+import com.ioyouyun.wchat.message.HistoryMessage;
+import com.ioyouyun.wchat.message.NoticeType;
+import com.ioyouyun.wchat.message.TextMessage;
 import com.ioyouyun.wchat.message.WChatException;
 import com.ioyouyun.wchat.protocol.MetaMessageType;
+import com.ioyouyun.wchat.util.HttpCallback;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,12 +41,14 @@ public class ChatPresenter {
     private Activity activity;
     private ChatView chatView;
     private MyInnerReceiver receiver;
+    private Handler handler;
 
     private List<ChatMsgEntity> chatMsgEntityList = new ArrayList<>();
 
     public ChatPresenter(ChatView chatView, Activity activity) {
         this.chatView = chatView;
         this.activity = activity;
+        handler = new Handler(Looper.getMainLooper());
         registerReceiver();
         ReceiveMsgRunnable runnable = new ReceiveMsgRunnable(activity);
         Thread msgThread = new Thread(runnable);
@@ -148,6 +160,140 @@ public class ChatPresenter {
         } catch (WChatException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 获取历史记录
+     */
+    public void getHistory(){
+        long time = -1;
+        if (chatMsgEntityList.size() > 0) {
+            time = chatMsgEntityList.get(0).time / 1000;
+        }
+        WeimiInstance.getInstance().shortGetHistoryByTime(AppUtils.CUSTOM_SERVICE_ID, time, 10, ConvType.single, new HttpCallback() {
+            @Override
+            public void onResponse(String s) {
+
+            }
+
+            @Override
+            public void onResponseHistory(List<HistoryMessage> list) {
+                refreshComplete();
+                if (list == null || list.size() == 0) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            AppUtils.toastMessage("没有更多数据");
+                        }
+                    });
+                    return;
+                }
+                for (HistoryMessage message : list) {
+                    if (NoticeType.textmessage == message.type) {
+                        TextMessage textMessage = (TextMessage) message.message;
+                        receiveText(textMessage);
+                    } else if (NoticeType.mixedtextmessage == message.type) {
+                        TextMessage textMessage = (TextMessage) message.message;
+                        Log.logD("历史中收到一条富文本消息：" + textMessage.text);
+                    }else if (NoticeType.filemessage == message.type) {
+                        FileMessage fileMessage = (FileMessage) message.message;
+                        receiveFile(fileMessage);
+                    }
+                }
+                historyRefreshAdapter();
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+                refreshComplete();
+            }
+        }, 120);
+    }
+
+    private void receiveFile(FileMessage fileMessage) {
+        String thumbnailPath = "";
+        if (null != fileMessage.thumbData) {
+            thumbnailPath = AppUtils.getThumbnailPath(fileMessage.fromuid, fileMessage.msgId);
+            AppUtils.saveImg(fileMessage.thumbData, thumbnailPath); //保存缩略图
+        }
+        FileEntity fileEntity = new FileEntity();
+        int msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_IMAGE;
+        if (AppUtils.uid.equals(fileMessage.fromuid))
+            msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_IMAGE;
+        fileEntity.msgType = msgType;
+        fileEntity.fileId = fileMessage.fileId;
+        fileEntity.fileLength = fileMessage.fileLength;
+        fileEntity.pieceSize = fileMessage.pieceSize;
+        fileEntity.thumbnailPath = thumbnailPath;
+        fileEntity.time = fileMessage.time;
+        String padding = new String(fileMessage.padding);
+        Log.logD("额外消息：" + padding);
+        try {
+            JSONObject object = new JSONObject(padding);
+            if(object != null){
+                fileEntity.nickName = object.optString(AppUtils.NICK_NAME);
+                fileEntity.headUrl = object.optString(AppUtils.HEAD_URL);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        chatMsgEntityList.add(0, fileEntity);
+        historyCount++;
+    }
+
+    private void receiveText(TextMessage textMessage) {
+        ChatMsgEntity entity = AppUtils.parseRobotMsg(textMessage.text);
+        int msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_TEXT;
+        if (AppUtils.uid.equals(textMessage.fromuid))
+            msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_TEXT;
+        if (entity != null) {
+            String padding = new String(textMessage.padding);
+            Log.logD("额外消息：" + padding);
+            try {
+                JSONObject object = new JSONObject(padding);
+                if(object != null){
+                    entity.nickName = object.optString(AppUtils.NICK_NAME);
+                    entity.headUrl = object.optString(AppUtils.HEAD_URL);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            entity.msgType = msgType;
+            entity.time = textMessage.time;
+            chatMsgEntityList.add(0, entity);
+            historyCount++;
+        }
+    }
+
+    /**
+     * 刷新历史聊天列表
+     */
+    private void historyRefreshAdapter() {
+        if (historyCount > 0) {
+            final int count = historyCount;
+            historyCount = 0;
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    chatView.refreshList(chatMsgEntityList);
+                    chatView.scrollToPosition(count);
+                }
+            });
+        }
+    }
+    int historyCount = 0;
+
+    /**
+     * 取消下拉加载进度条
+     */
+    private void refreshComplete() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                chatView.onCompleteLoad();
+            }
+        });
     }
 
     private void refreshUI(ChatMsgEntity entity){
