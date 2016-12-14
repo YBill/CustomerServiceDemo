@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 
 import com.customerservice.AppUtils;
 import com.customerservice.Log;
@@ -72,34 +71,34 @@ public class ChatPresenter {
         if (file.exists())
             fileLength = (int) file.length();
 
-        Bitmap bitmap = AppUtils.compressPic(new File(filePath));
-        String desPath = AppUtils.getChatImagePath(fileName);
-        AppUtils.saveBitmap(bitmap, desPath);
-        Bitmap thumbnailBitmap = AppUtils.getSmallBitmap(desPath);
-        String thumbnailPath = AppUtils.getThumbnailPath(AppUtils.uid, msgId);
-        AppUtils.saveBitmap(thumbnailBitmap, thumbnailPath);
-        byte[] thumbnail = AppUtils.getByteByBitmap(bitmap);
-
-        FileEntity fileEntity = new FileEntity();
-        fileEntity.fileLength = fileLength;
-        fileEntity.fileLocal = desPath;
-        fileEntity.thumbnailPath = thumbnailPath;
-        fileEntity.msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_IMAGE;
-        fileEntity.time = System.currentTimeMillis();
-
-        int desFileLength = 0;
-        File desFile = new File(desPath);
-        if (desFile.exists())
-            desFileLength = (int) desFile.length();
+        String compressPath = AppUtils.compressImage(filePath, AppUtils.getChatImagePath(fileName));
+        int compressFileLength = 0;
+        File compressFile = new File(compressPath);
+        if (compressFile.exists())
+            compressFileLength = (int) compressFile.length();
+        byte[] thumbnail = AppUtils.genSendImgThumbnail(compressPath);
+        String thumbnailPath = "";
+        if (thumbnail != null) {
+            thumbnailPath = AppUtils.getThumbnailPath(AppUtils.uid, msgId);
+            AppUtils.saveImg(thumbnail, thumbnailPath); //保存缩略图
+        }
         int thumbnailFileLength = 0;
         File thumbnailFile = new File(thumbnailPath);
         if (thumbnailFile.exists())
             thumbnailFileLength = (int) thumbnailFile.length();
-        Log.logD("文件原图大小：" + fileLength + " |压缩后原图大小：" + desFileLength + " |缩略图大小：" + thumbnailFileLength);
+
+        FileEntity fileEntity = new FileEntity();
+        fileEntity.fileLength = compressFileLength;
+        fileEntity.fileLocal = compressPath;
+        fileEntity.thumbnailPath = thumbnailPath;
+        fileEntity.msgType = ChatMsgEntity.CHAT_TYPE_PEOPLE_SEND_IMAGE;
+        fileEntity.time = System.currentTimeMillis();
+
+        Log.logD("文件原图大小：" + fileLength + " |压缩后大小：" + compressFileLength + " |缩略图大小：" + thumbnailFileLength);
 
         int sliceCount = 0;
         try {
-            sliceCount = WeimiInstance.getInstance().sendFile(msgId, AppUtils.CUSTOM_SERVICE_ID, filePath, fileName, MetaMessageType.image, null, ConvType.single, null, thumbnail, 600);
+            sliceCount = WeimiInstance.getInstance().sendFile(msgId, AppUtils.CUSTOM_SERVICE_ID, fileEntity.fileLocal, fileName, MetaMessageType.image, null, ConvType.single, null, thumbnail, 600);
         } catch (WChatException e) {
             e.printStackTrace();
         }
