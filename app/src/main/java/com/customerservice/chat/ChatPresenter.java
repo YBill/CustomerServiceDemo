@@ -212,6 +212,8 @@ public class ChatPresenter {
     }
 
     private void receiveFile(FileMessage fileMessage) {
+        historyCount++;
+
         if (MetaMessageType.image == fileMessage.type) {
             String thumbnailPath = "";
             if (null != fileMessage.thumbData) {
@@ -239,12 +241,20 @@ public class ChatPresenter {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
             chatMsgEntityList.add(0, fileEntity);
-            historyCount++;
+            if (chatMsgEntityList.size() > 1) {
+                if (chatMsgEntityList.get(1).time - chatMsgEntityList.get(0).time <= AppUtils.MSG_TIME_SEPARATE) {
+                    chatMsgEntityList.get(1).isShowTime = false;
+                }
+            }
+
         }
     }
 
     private void receiveText(TextMessage textMessage) {
+        historyCount++;
+
         ChatMsgEntity entity = AppUtils.parseRobotMsg(textMessage.text);
         int msgType = ChatMsgEntity.CHAT_TYPE_ROBOT_TEXT;
         if (AppUtils.uid.equals(textMessage.fromuid))
@@ -263,8 +273,15 @@ public class ChatPresenter {
             }
             entity.msgType = msgType;
             entity.time = textMessage.time;
+            entity.isShowTime = true;
+
             chatMsgEntityList.add(0, entity);
-            historyCount++;
+            if (chatMsgEntityList.size() > 1) {
+                if (chatMsgEntityList.get(1).time - chatMsgEntityList.get(0).time <= AppUtils.MSG_TIME_SEPARATE) {
+                    chatMsgEntityList.get(1).isShowTime = false;
+                }
+            }
+
         }
     }
 
@@ -299,7 +316,19 @@ public class ChatPresenter {
     }
 
     private void refreshUI(ChatMsgEntity entity){
-        chatMsgEntityList.add(entity);
+        int index = chatMsgEntityList.size();
+        chatMsgEntityList.add(index, entity);
+        int preIndex = index - 1;
+        if (preIndex >= 0) {
+            if (chatMsgEntityList.get(index).time - chatMsgEntityList.get(preIndex).time > AppUtils.MSG_TIME_SEPARATE) {
+                chatMsgEntityList.get(index).isShowTime = true;
+                chatMsgEntityList.set(index, entity);
+            }
+        } else {
+            chatMsgEntityList.get(index).isShowTime = true;
+            chatMsgEntityList.set(index, entity);
+        }
+
         chatView.refreshList(chatMsgEntityList);
         chatView.scrollToPosition(chatMsgEntityList.size() - 1);
         chatView.clearInputMsg();

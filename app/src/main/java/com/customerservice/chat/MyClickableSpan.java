@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.view.View;
+import android.widget.TextView;
 
 import com.customerservice.AppUtils;
 import com.customerservice.Log;
@@ -51,6 +52,7 @@ public class MyClickableSpan extends ClickableSpan {
             LinkMsgEntity linkMsgEntity = (LinkMsgEntity) entity;
             linkClick(linkMsgEntity);
         } else if (entity instanceof ActionMsgEntity) {
+//            ((TextView)view).setHighlightColor(context.getResources().getColor(android.R.color.holo_red_light));
             ActionMsgEntity actionMsgEntity = (ActionMsgEntity) entity;
             actionClick(actionMsgEntity);
         }

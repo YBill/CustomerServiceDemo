@@ -15,6 +15,7 @@ import com.customerservice.chat.jsonmodel.ActionMsgEntity;
 import com.customerservice.chat.jsonmodel.CardMsgEntity;
 import com.customerservice.chat.jsonmodel.ChatMsgEntity;
 import com.customerservice.chat.jsonmodel.LinkMsgEntity;
+import com.customerservice.chat.jsonmodel.NoticeMsgEntity;
 import com.customerservice.chat.jsonmodel.TextMsgEntity;
 
 import org.json.JSONArray;
@@ -47,11 +48,9 @@ public class AppUtils {
     public static Context mAppContext;
     public static String uid; // 用户ID
 
-    public static String CUSTOM_SERVICE_ID = "549341"; // 魅族：271576 小米：238973 nexus:176329
+    public static String CUSTOM_SERVICE_ID = "549341";
 
-    // 客服：549341
-    // 线上 ：  魅族：271576 小米：238973 nexus:176329
-    // 测试版： 魅族：539578 nexus：543951
+    public static final long MSG_TIME_SEPARATE = 300000L; // IM时间间隔5分钟
 
     public static final String MSG_TYPE_RECEIVE = "msg_type_receive"; // 收到消息
     public static final String TYPE_MSG = "type_msg";
@@ -106,6 +105,7 @@ public class AppUtils {
     private static final String CONTENT = "content";
     private static final String PARAMS = "params";
     private static final String URL = "url";
+    private static final String DATA_ID = "data_id";
 
     private static final String SORT = "sort";
     private static final String ENTER_KEY = "entercs";
@@ -178,9 +178,15 @@ public class AppUtils {
                 String type = object.getString(TYPE);
                 if (TEXT.equals(type)) {
                     String content = object.getString(CONTENT);
-                    TextMsgEntity textMsgEntity = new TextMsgEntity();
-                    textMsgEntity.content = content;
-                    return textMsgEntity;
+                    if (object.has(DATA_ID) && "50001".equals(object.getString(DATA_ID))) {
+                        NoticeMsgEntity noticeMsgEntity = new NoticeMsgEntity();
+                        noticeMsgEntity.content = content;
+                        return noticeMsgEntity;
+                    } else {
+                        TextMsgEntity textMsgEntity = new TextMsgEntity();
+                        textMsgEntity.content = content;
+                        return textMsgEntity;
+                    }
                 } else if (LINK.equals(type)) {
                     String content = object.getString(CONTENT);
                     String url = object.getString(URL);
@@ -212,29 +218,39 @@ public class AppUtils {
         return null;
     }
 
-    /**
-     * 判断是object or array
-     *
-     * @param json
-     */
-    private void isObjectOrArray(String json) {
-        JSONTokener tokener = new JSONTokener(json);
+    public static boolean isJSONObject(String json) {
         try {
-            Object object = tokener.nextValue();
-            if (object instanceof JSONObject) {
-                // object
-            } else if (object instanceof JSONArray) {
-                // array
-            } else {
-                // json格式错误
+            JSONTokener tokener = new JSONTokener(json);
+            if (tokener != null) {
+                Object object = tokener.nextValue();
+                if (object instanceof JSONObject) {
+                    return true;
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return false;
+    }
+
+    public static boolean isJSONArray(String json) {
+        try {
+            JSONTokener tokener = new JSONTokener(json);
+            if (tokener != null) {
+                Object object = tokener.nextValue();
+                if (object instanceof JSONArray) {
+                    return true;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
      * 自己测试数据
+     *
      * @return
      */
     @Deprecated
@@ -361,7 +377,7 @@ public class AppUtils {
 
             // 按比例计算缩放后的图片大小，maxLength是长或宽允许的最大长度
             /*if (srcWidth > srcHeight) {
-				ratio = (double) srcWidth / (double) 1600;
+                ratio = (double) srcWidth / (double) 1600;
 				destWidth = 1600;
 				destHeight = (int) (srcHeight / ratio);
 			} else {

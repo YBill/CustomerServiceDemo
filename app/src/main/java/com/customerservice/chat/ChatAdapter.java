@@ -19,16 +19,17 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.customerservice.R;
+import com.customerservice.TimeUtil;
 import com.customerservice.chat.jsonmodel.ActionMsgEntity;
 import com.customerservice.chat.jsonmodel.CardMsgEntity;
 import com.customerservice.chat.jsonmodel.ChatMsgEntity;
 import com.customerservice.chat.jsonmodel.LinkMsgEntity;
+import com.customerservice.chat.jsonmodel.NoticeMsgEntity;
 import com.customerservice.chat.jsonmodel.TextMsgEntity;
 import com.customerservice.chat.model.FileEntity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -77,6 +78,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             View mView = LayoutInflater.from(context).inflate(R.layout.layout_chat_image_robot, parent, false);
             PeopleImageHolder viewHolder = new PeopleImageHolder(mView);
             return viewHolder;
+        }else if(viewType == ChatMsgEntity.CHAT_TYPE_NOTICE){
+            View mView = LayoutInflater.from(context).inflate(R.layout.layout_chat_notice, parent, false);
+            NoticeHolder noticeHolder = new NoticeHolder(mView);
+            return noticeHolder;
         }
         return null;
 
@@ -140,7 +145,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             peopleTextHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
                         }
                     });
-            peopleTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
+//            peopleTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
+            if (entity.isShowTime) {
+                peopleTextHolder.dataText.setVisibility(View.VISIBLE);
+                peopleTextHolder.dataText.setText(TimeUtil.format2(entity.time));
+            } else {
+                peopleTextHolder.dataText.setVisibility(View.GONE);
+            }
             TextMsgEntity textMsgEntity = (TextMsgEntity) entity;
             peopleTextHolder.contentText.setText(textMsgEntity.content);
         } else if (holder instanceof RobotTextHolder) {
@@ -163,7 +174,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         });
             } else
                 Glide.with(context).load(R.mipmap.ic_launcher).into(robotTextHolder.avatarImage);
-            robotTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
+//            robotTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
+            if (entity.isShowTime) {
+                robotTextHolder.dataText.setVisibility(View.VISIBLE);
+                robotTextHolder.dataText.setText(TimeUtil.format2(entity.time));
+            } else {
+                robotTextHolder.dataText.setVisibility(View.GONE);
+            }
 
             robotTextHolder.contentText.setText("");
             isFirstNotCard = false;
@@ -206,7 +223,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             }
                         });
             }
-            peopleImageHolder.dataText.setText(sdf.format(new Date(entity.time)));
+//            peopleImageHolder.dataText.setText(sdf.format(new Date(entity.time)));
+            if (entity.isShowTime) {
+                peopleImageHolder.dataText.setVisibility(View.VISIBLE);
+                peopleImageHolder.dataText.setText(TimeUtil.format2(entity.time));
+            } else {
+                peopleImageHolder.dataText.setVisibility(View.GONE);
+            }
             final FileEntity fileEntity = (FileEntity) entity;
             Bitmap bitmap = BitmapFactory.decodeFile(fileEntity.thumbnailPath);
             peopleImageHolder.contentImage.setImageBitmap(bitmap);
@@ -217,6 +240,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     BitImageActivity.startActivity(context, fileEntity, position);
                 }
             });
+        }else if (holder instanceof NoticeHolder) {
+            final NoticeHolder noticeHolder = (NoticeHolder) holder;
+            NoticeMsgEntity noticeMsgEntity = (NoticeMsgEntity) entity;
+            noticeHolder.noticeMsgText.setText(noticeMsgEntity.content);
         }
     }
 
@@ -253,6 +280,18 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      */
     public void setOnItemClickLitener(OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
+    }
+
+    class NoticeHolder extends RecyclerView.ViewHolder {
+
+        TextView noticeMsgText;
+
+        public NoticeHolder(View itemView) {
+            super(itemView);
+            noticeMsgText = (TextView) itemView.findViewById(R.id.tv_notice_msg);
+
+        }
+
     }
 
     /**
