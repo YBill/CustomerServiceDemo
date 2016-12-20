@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CustomerServiceDemo</string>
+    <string name="app_name">客服</string>
     <string name="login">登录</string>
     <string name="online_service">在线客服</string>
     <string name="button_photo_gallery">相册</string>

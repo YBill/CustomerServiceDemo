@@ -3,6 +3,7 @@ package com.customerservice.chat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.RecyclerView;
@@ -16,8 +17,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.customerservice.AppUtils;
 import com.customerservice.R;
 import com.customerservice.TimeUtil;
 import com.customerservice.chat.jsonmodel.ActionMsgEntity;
@@ -131,7 +134,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 //            Glide.with(context).load(R.drawable.sd).asGif().into(peopleTextHolder.avatarImage);
 //            Glide.with(context).load(R.drawable.you).into(peopleTextHolder.avatarImage);
             Glide.with(context)
-                    .load(R.drawable.xjs)
+                    .load(R.drawable.you)
                     .asBitmap()
                     .centerCrop()
                     .placeholder(R.mipmap.ic_launcher)
@@ -145,6 +148,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             peopleTextHolder.avatarImage.setImageDrawable(circularBitmapDrawable);
                         }
                     });
+            /*String nickName = AppUtils.uid;
+            String end = nickName.substring(nickName.length() - 1, nickName.length());
+            TextDrawable drawable = TextDrawable.builder().buildRound(AppUtils.uid, Color.parseColor("#cb5372"));
+            peopleTextHolder.avatarImage.setImageDrawable(drawable);*/
 //            peopleTextHolder.dataText.setText(sdf.format(new Date(entity.time)));
             if (entity.isShowTime) {
                 peopleTextHolder.dataText.setVisibility(View.VISIBLE);
